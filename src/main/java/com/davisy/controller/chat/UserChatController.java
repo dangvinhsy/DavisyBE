@@ -220,7 +220,8 @@ public class UserChatController {
 	public HashMap<Integer, List<UserModel>> fetchAll() {
 		return UserChatStorage.getInstance().getUsers();
 	}
-
+	
+	
 	@GetMapping("/v1/user/block/chat")
 	public ResponseEntity<Void> loadMessages(HttpServletRequest request, @RequestParam("to") int to, @RequestParam("status") boolean statsus) {
 		try {
