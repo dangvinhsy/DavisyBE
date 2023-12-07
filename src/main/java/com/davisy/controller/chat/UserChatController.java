@@ -124,29 +124,27 @@ public class UserChatController {
 						int to = Integer.valueOf(ob[1].toString());
 						UserModel model = new UserModel();
 						model.setLastMessage(content);
-						
-						if(content != "") {
-							if(content.startsWith("Bạn: ")) {
-								content = content.substring(5);
-							}
-							
-							
-							// giải mã nội dung tin nhắn
-							
-							// Step1. Get SecretKey from u1, u2
-					    	int key = DiffieHellman.genSecretKey(from, to);
-					    	
-					    	System.out.println("FROM: "+from+": "+to);
-					    	
-					    	// Step2. encode message
-					    	String originMess = AES.decrypt(content, key);
-							System.out.println(content+":"+originMess);
-							
+						String flag = "";
+						if (content != "") {
 
-							model.setLastMessage(originMess);
+							if (content.startsWith("Bạn: ")) {
+								content = content.substring(5);
+								flag = "Bạn: ";
+							}
+							// giải mã nội dung tin nhắn
+
+							// Step1. Get SecretKey from u1, u2
+							int key = DiffieHellman.genSecretKey(from, to);
+							// Step2. encode message
+							String originMess = AES.decrypt(content, key);
+							if (originMess == null) {
+								originMess = content;
+							}
+							model.setLastMessage(flag + originMess);
+						} else {
+							model.setLastMessage(content);
 						}
-						
-						
+
 						if (ob[0].equals("JOIN")) {
 							model.setType(MessageType.JOIN);
 						} else {
@@ -220,15 +218,15 @@ public class UserChatController {
 	public HashMap<Integer, List<UserModel>> fetchAll() {
 		return UserChatStorage.getInstance().getUsers();
 	}
-	
-	
+
 	@GetMapping("/v1/user/block/chat")
-	public ResponseEntity<Void> loadMessages(HttpServletRequest request, @RequestParam("to") int to, @RequestParam("status") boolean statsus) {
+	public ResponseEntity<Void> loadMessages(HttpServletRequest request, @RequestParam("to") int to,
+			@RequestParam("status") boolean statsus) {
 		try {
 			String email = jwtTokenUtil.getEmailFromHeader(request);
 			User user = userService.findByEmail(email);
 			int chat_id = chatParticipantsService.chat_id(user.getUser_id(), to);
-			chatParticipantsService.block(statsus,chat_id, user.getUser_id());
+			chatParticipantsService.block(statsus, chat_id, user.getUser_id());
 			return ResponseEntity.ok().build();
 		} catch (Exception e) {
 			System.out.println("Error loadMessages in MessagesController: " + e);

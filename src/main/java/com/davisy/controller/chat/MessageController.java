@@ -74,15 +74,16 @@ public class MessageController {
 		Chats chats = chatsService.findChatNames(user.getUsername(), toUser.getUsername());
 		List<String> images = new ArrayList<>();
 		Messages messages = new Messages();
+		String rarMess="";
+		if(!message.getMessage().equals("")) {
+			// mã hóa nội dung tin nhắn
 
-		// mã hóa nội dung tin nhắn
+			// Step1. Get SecretKey from u1, u2
+			int key = DiffieHellman.genSecretKey(from, to);
 
-		// Step1. Get SecretKey from u1, u2
-		int key = DiffieHellman.genSecretKey(from, to);
-
-		// Step2. encode message
-		String rarMess = AES.encrypt(message.getMessage(), key);
-
+			// Step2. encode message
+			 rarMess = AES.encrypt(message.getMessage(), key);
+		}
 		messages.setContent(rarMess);
 		messages.setUser(user);
 		messages.setChats(chats);
