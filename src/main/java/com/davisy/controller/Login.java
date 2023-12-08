@@ -142,20 +142,26 @@ public class Login {
 //	}
 
 	@GetMapping(path = "/v1/oauth/login/toapp", produces = MediaType.IMAGE_JPEG_VALUE)
-	public ResponseEntity<byte[]> loginWithQRToApp(HttpServletRequest request) throws IOException {
-		String email = jwtTokenUtil.getEmailFromHeader(request);
-		User user = userService.findByEmail(email);
-		if (user == null)
-			return ResponseEntity.status(400).body(null);
-		String token = genToken(user.getUser_id()); // id.code_confirm
-		byte[] qr =generatorService.generateQrCodeImage(token, 200, 200);
-		return ResponseEntity.status(200).body(qr);
+	public ResponseEntity<byte[]> loginWithQRToApp(HttpServletRequest request){
+		try {
+			String email = jwtTokenUtil.getEmailFromHeader(request);
+			User user = userService.findByEmail(email);
+			if (user == null)
+				return ResponseEntity.status(400).body(null);
+			String token = genToken(user.getUser_id()); // id.code_confirm
+			System.out.println(token);
+			byte[] qr =generatorService.generateQrCodeImage(token, 200, 200);
+			return ResponseEntity.status(200).body(qr);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
-	@GetMapping("/v1/oauth/login/byapp/{token}")
-	public ResponseEntity<LoginResponse> loginWithQRByApp(@PathVariable String token) {
-		int idUser = readToken(token);
+	@PostMapping("/v1/oauth/login/byapp")
+	public ResponseEntity<LoginResponse> loginWithQRByApp(@RequestParam("token") String token) {
 		System.out.println("token: " + token);
+		int idUser = readToken(token);
+
 		System.out.println("id: " + idUser);
 		LoginResponse loginResponse = authenticationService.loginWithTokenApp(idUser);
 		return ResponseEntity.status(200).body(loginResponse);

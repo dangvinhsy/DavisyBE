@@ -57,8 +57,9 @@ public class QrCodeGeneratorService {
 			ImageIO.write(qrImage, "png", outputStream);
 //			MatrixToImageWriter.writeToFile(bitMatrix, uploadRootPath.substring(uploadRootPath.lastIndexOf('.') + 1),
 //					new File(uploadRootPath));
-//			System.out.println("success");
+			System.out.println("success");
 		} catch (IOException e) {
+			System.out.println(e);
 			throw new RuntimeException("Failed to write QR code image to output stream.", e);
 		}
 		return outputStream.toByteArray();
