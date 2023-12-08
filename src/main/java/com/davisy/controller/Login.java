@@ -158,7 +158,7 @@ public class Login {
 	}
 
 	@PostMapping("/v1/oauth/login/byapp")
-	public ResponseEntity<LoginResponse> loginWithQRByApp(@RequestParam("token") String token) {
+	public ResponseEntity<LoginResponse> loginWithQRByApp(@RequestBody String token) {
 		System.out.println("token: " + token);
 		int idUser = readToken(token);
 
