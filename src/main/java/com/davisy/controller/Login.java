@@ -60,7 +60,7 @@ public class Login {
 
 	@Autowired
 	HttpServletRequest httpServletRequest;
-	
+
 	@Autowired
 	QrCodeGeneratorService generatorService;
 
@@ -141,17 +141,17 @@ public class Login {
 //		return ResponseEntity.status(200).body(token);
 //	}
 
-	@GetMapping(path = "/v1/oauth/login/toapp", produces = MediaType.IMAGE_JPEG_VALUE)
-	public ResponseEntity<byte[]> loginWithQRToApp(HttpServletRequest request){
+	@GetMapping("/v1/login/qr/app")
+	public ResponseEntity<Object[]> loginWithQRToApp(HttpServletRequest request) {
 		try {
 			String email = jwtTokenUtil.getEmailFromHeader(request);
 			User user = userService.findByEmail(email);
 			if (user == null)
 				return ResponseEntity.status(400).body(null);
 			String token = genToken(user.getUser_id()); // id.code_confirm
-			System.out.println(token);
-			byte[] qr =generatorService.generateQrCodeImage(token, 200, 200);
-			return ResponseEntity.status(200).body(qr);
+			byte[] qr = generatorService.generateQrCodeImage(token, 200, 200);
+
+			return ResponseEntity.status(200).body(new Object[] { qr, 0 });
 		} catch (Exception e) {
 			return null;
 		}
@@ -159,17 +159,13 @@ public class Login {
 
 	@PostMapping("/v1/oauth/login/byapp")
 	public ResponseEntity<LoginResponse> loginWithQRByApp(@RequestBody String token) {
-		System.out.println("token: " + token);
 		int idUser = readToken(token);
-
-		System.out.println("id: " + idUser);
 		LoginResponse loginResponse = authenticationService.loginWithTokenApp(idUser);
 		return ResponseEntity.status(200).body(loginResponse);
 	}
 
 	private static int readToken(String token) {
 		Instant currentTime = Instant.now();
-		System.out.println(currentTime);
 		// token = Base64[ AES(id|time) ]
 
 		try {
@@ -181,9 +177,6 @@ public class Login {
 			Instant timeFromToken = Instant.parse(time);
 
 			long minutesDifference = java.time.Duration.between(timeFromToken, currentTime).toMinutes();
-			System.out.println("time: " + time);
-			System.out.println("id1: " + id);
-			System.out.println("minutesDifference: " + minutesDifference);
 
 			if (minutesDifference > 5)
 				return -1;
