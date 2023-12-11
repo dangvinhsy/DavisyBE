@@ -8,6 +8,7 @@ import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,6 +64,9 @@ public class Login {
 
 	@Autowired
 	QrCodeGeneratorService generatorService;
+
+	@Autowired
+	SimpMessagingTemplate simpMessagingTemplate;
 
 	static final int secretKey = 12981;
 
@@ -160,20 +164,59 @@ public class Login {
 	@PostMapping("/v1/oauth/login/byapp")
 	public ResponseEntity<LoginResponse> loginWithQRByApp(@RequestBody String token) {
 		int idUser = readToken(token);
+		if (idUser == -1) {
+			return ResponseEntity.status(402).body(null);
+		}
 		LoginResponse loginResponse = authenticationService.loginWithTokenApp(idUser);
 		return ResponseEntity.status(200).body(loginResponse);
+	}
+
+	@GetMapping("/v1/login/qr/web")
+	public ResponseEntity<Object[]> loginWithQRToWeb() {
+		try {
+			String token = genToken(); // id.code_confirm
+			System.err.println("token: " + token);
+			byte[] qr = generatorService.generateQrCodeImage(token, 200, 200);
+			return ResponseEntity.status(200).body(new Object[] { qr,token});
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@PostMapping("/v1/oauth/login/byweb")
+	public ResponseEntity<Void> loginWithQRByWeb(@RequestBody String token,HttpServletRequest request) {
+		try {
+			String email = jwtTokenUtil.getEmailFromHeader(request);
+			User user = userService.findByEmail(email);
+			int check = readToken(token);
+			int idUser =user.getUser_id();
+			if (check == -1) {
+				simpMessagingTemplate.convertAndSend("/topic/login/qr-code/" + token, false);
+//				return;
+				return ResponseEntity.status(402).build();
+			}
+			LoginResponse loginResponse = authenticationService.loginWithTokenApp(idUser);
+			simpMessagingTemplate.convertAndSend("/topic/login/qr-code/" + token, loginResponse);
+			return ResponseEntity.status(200).build();
+		} catch (Exception e) {
+		System.err.println("error create qr code: "+e);
+		return ResponseEntity.badRequest().build();
+		}
+		
 	}
 
 	private static int readToken(String token) {
 		Instant currentTime = Instant.now();
 		// token = Base64[ AES(id|time) ]
-
+		int id = 0;
 		try {
 			String deB64 = base64Decode(token);
 			String get = AES.decrypt(deB64, secretKey);
-			int id = Integer.valueOf(get.substring(0, get.lastIndexOf("|")));
-			String time = get.substring(get.lastIndexOf("|") + 1);
-
+			String time =get;
+			if (get.contains("|")) {
+				id = Integer.valueOf(get.substring(0, get.lastIndexOf("|")));
+				 time = get.substring(get.lastIndexOf("|") + 1);
+			}
 			Instant timeFromToken = Instant.parse(time);
 
 			long minutesDifference = java.time.Duration.between(timeFromToken, currentTime).toMinutes();
@@ -198,6 +241,14 @@ public class Login {
 //        System.err.println(base64Decode(base64Encode(enc)));
 //        System.out.println(AES.decrypt(base64Decode(base64Encode(enc)),12212));
 
+		return base64Encode(enc);
+	}
+
+	private static String genToken() {
+		Instant currentTime = Instant.now();
+		String time = currentTime.toString();
+		String token = time;
+		String enc = AES.encrypt(token, secretKey);
 		return base64Encode(enc);
 	}
 

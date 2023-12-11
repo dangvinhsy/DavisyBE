@@ -309,7 +309,6 @@ public class AuthenticationService {
 	}
 	
 	
-	
 	public LoginResponse loginWithTokenApp(int idUser) {
 		/*
 		 * Status code: 

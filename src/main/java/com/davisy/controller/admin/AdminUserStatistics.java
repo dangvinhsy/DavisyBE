@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.davisy.dto.AdminUserTOP4;
+import com.davisy.dto.UserInfoStatusDTO;
 import com.davisy.entity.Post;
 import com.davisy.entity.User;
 import com.davisy.service.CommentService;
@@ -21,6 +22,7 @@ import com.davisy.service.FollowService;
 import com.davisy.service.InterestedService;
 import com.davisy.service.PostService;
 import com.davisy.service.ShareService;
+import com.davisy.service.UserInfoStatusService;
 import com.davisy.service.UserService;
 
 import jakarta.annotation.security.RolesAllowed;
@@ -46,6 +48,9 @@ public class AdminUserStatistics {
 	Calendar now = Calendar.getInstance();
 	int previousMonth = now.get(Calendar.MONTH);
 	int currentMonth = previousMonth + 1;
+	
+	@Autowired
+	private UserInfoStatusService infoStatusService;
 	
 	
 	// lastest update 1-11
@@ -158,6 +163,7 @@ public class AdminUserStatistics {
 	
 	
 	//21-9-2023 -TOP 4 người dùng
+	//9-12
 	@GetMapping("/v1/admin/getTOP4User")
 	public ResponseEntity<List<AdminUserTOP4>> getTOP4User(){
 		try {
@@ -169,17 +175,32 @@ public class AdminUserStatistics {
 				User user = userService.findByEmail(String.valueOf(oj[0]));
 				AdminUserTOP4 adminUserTOP4 = new AdminUserTOP4();
 				
+				//check status
+				
+				UserInfoStatusDTO uStatus = infoStatusService.checkUserInfoStatus(user.getUser_id().toString());
+				
+				// check status
+				if (uStatus.isBirthdayStatus() == true) {
+					int birthdayYear = user.getBirthday().get(Calendar.YEAR);
+					Calendar calendar = GregorianCalendar.getInstance();
+					int thisYear = calendar.get(Calendar.YEAR);
+					
+					int age = thisYear - birthdayYear;
+					adminUserTOP4.setAge(age+" tuổi");
+				} else {
+					adminUserTOP4.setAge("");
+				}
+				
+				// check status
+				if (uStatus.isLocationStatus() == true) {
+					adminUserTOP4.setLocation(user.getLocation());
+				} else {
+					adminUserTOP4.setLocation("");
+				}
+				
 				adminUserTOP4.setEmail(user.getEmail());
 				adminUserTOP4.setFullname(user.getFullname());
-				adminUserTOP4.setAvatar(user.getAvatar());
-				adminUserTOP4.setLocation(user.getLocation());
-				
-				int birthdayYear = user.getBirthday().get(Calendar.YEAR);
-				Calendar calendar = GregorianCalendar.getInstance();
-				int thisYear = calendar.get(Calendar.YEAR);
-				
-				int age = thisYear - birthdayYear;
-				adminUserTOP4.setAge(age);
+				adminUserTOP4.setAvatar(user.getAvatar());	 
 				
 				int totalPost = postService.getTotalPostByUser(user.getUser_id());
 				adminUserTOP4.setTotalPost(totalPost);

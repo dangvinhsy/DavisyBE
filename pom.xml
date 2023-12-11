@@ -239,6 +239,7 @@
 			<artifactId>spring-data-mongodb</artifactId>
 			<version>4.1.2</version>
 		</dependency>
+		
 		 <!-- QR code -->
 		<dependency>
 			<groupId>com.google.zxing</groupId>
@@ -251,7 +252,6 @@
 			<version>3.3.0</version>
 		</dependency>
 		<!-- QR code-->
-
 
 	</dependencies>
 
