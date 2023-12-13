@@ -138,7 +138,9 @@ public class MessageController {
 
 	@PostMapping("/v1/user/video-call/{fromUserId}/{toUserId}")
 	public void videoCall(@PathVariable("fromUserId") int fromUserId, @PathVariable("toUserId") int toUserId) {
-		Object[] o = new Object[] { fromUserId, toUserId };
+		User  user = userService.findById(fromUserId);
+		String avatar =user.getAvatar();
+		Object[] o = new Object[] { fromUserId, toUserId, avatar };
 		simpMessagingTemplate.convertAndSend("/topic/notify/video-call/" + toUserId, o);
 		
 	}

@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,6 +70,8 @@ public class AdminControl {
 	private EmailService emailService;
 	@Autowired
 	private UserInfoStatusService infoStatusService;
+	@Autowired
+	SimpMessagingTemplate  simpMessagingTemplate;
 
 	// 23-9-2023 -xem chi tiết bài đăng
 	// update lastest 7-10
@@ -119,10 +122,11 @@ public class AdminControl {
 			userService.disable(user);
 			if (user.isBan() == true) {
 				emailService.sendHtmlEmailToUserIsBan(email);
+				simpMessagingTemplate.convertAndSend("/topic/notify/user/ban/"+user.getUser_id(),"ban");
 			} else {
 				emailService.sendHtmlEmailToUserIsUnBan(email);
 			}
-//			
+			
 		} catch (Exception e) {
 			System.out.println("Error at admin/actionOnUser: " + e);
 		}

@@ -23,6 +23,7 @@ import com.davisy.auth.AuthenticationRequest;
 import com.davisy.auth.AuthenticationResponse;
 import com.davisy.config.JwtTokenUtil;
 import com.davisy.constant.Cache;
+import com.davisy.dto.UserInfoStatusDTO;
 import com.davisy.dto.UserProfile;
 import com.davisy.entity.DataFollows;
 import com.davisy.entity.Districts;
@@ -44,6 +45,7 @@ import com.davisy.service.InterestedService;
 import com.davisy.service.PostImagesService;
 import com.davisy.service.PostService;
 import com.davisy.service.ProvinceService;
+import com.davisy.service.UserInfoStatusService;
 import com.davisy.service.UserService;
 import com.davisy.service.WardService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,6 +97,9 @@ public class ProfileContronller {
 
 	@Autowired
 	EmailService emailService;
+
+	@Autowired
+	private UserInfoStatusService infoStatusService;
 
 	String provinceCode;
 	String districtCode;
@@ -211,9 +216,13 @@ public class ProfileContronller {
 			// lấy email
 			String email = jwtTokenUtil.getEmailFromHeader(request);
 			User userUpdate = userService.findByEmail(email);
+			if (userService.findByEmailOrUsername(userRequestUpdate.getUsername()) != null) {
+				return ResponseEntity.status(301).build();
+			}
 			userUpdate.setUsername(userRequestUpdate.getUsername());
-			if (!userUpdate.getUsername().equals(userRequestUpdate.getUsername())) {
+			if (!userUpdate.getUsername().equalsIgnoreCase(userRequestUpdate.getUsername())) {
 				chatsService.update_name_chats(userUpdate.getUser_id(), userRequestUpdate.getUsername());
+
 			}
 			userUpdate.setFullname(userRequestUpdate.getFullname());
 			userUpdate.setIntro(userRequestUpdate.getIntro());
@@ -270,6 +279,10 @@ public class ProfileContronller {
 			String email = jwtTokenUtil.getEmailFromHeader(request);
 			User user1 = userService.findByEmail(email);
 			User user = new User();
+			String birthday = "";
+			String gender = "";
+			String location_vi = "";
+			String location_en = "";
 			boolean check = false;
 			if (user1.getUser_id() == toProfileUser || toProfileUser == 0) {
 				user = user1;
@@ -277,12 +290,28 @@ public class ProfileContronller {
 				user = userService.findById(toProfileUser);
 				check = true;
 			}
+			UserInfoStatusDTO uStatus = infoStatusService.checkUserInfoStatus(user.getUser_id().toString());
 			int id = user.getUser_id();
 			ProfileEnitity profileEnitity = new ProfileEnitity();
 			profileEnitity.setIntro(user.getIntro());
 			profileEnitity.setImages(postImagesService.findAllImagesUser(id));
 			profileEnitity.setDateJoin(user.getDay_create());
 
+			// check status
+			if (uStatus.isBirthdayStatus() == true && user.getBirthday() != null) {
+				SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+				birthday = sdf.format(user.getBirthday().getTime());
+
+			}
+			// check status
+			if (uStatus.isGenderStatus() == true) {
+				gender = user.getGender().getGender_name();
+			}
+
+			// check status
+
+			profileEnitity.setBirthday(birthday);
+			profileEnitity.setGender(gender);
 			Provinces provinces = user.getProvinces();
 			Districts districts = user.getDistricts();
 			Wards wards = user.getWards();
@@ -307,8 +336,13 @@ public class ProfileContronller {
 				ward_fullname_en = wards.getFull_name_en();
 			}
 
-			profileEnitity.setAddress_fullname(district_fullname + " " + provinces_fullname);
-			profileEnitity.setAddress_fullname_en(district_fullname_en + " " + provinces_fullname_en);
+			
+			if (uStatus.isLocationStatus() == true) {
+				location_vi = district_fullname + " " + provinces_fullname;
+				location_en = district_fullname_en + " " + provinces_fullname_en;
+			}
+			profileEnitity.setAddress_fullname(location_vi);
+			profileEnitity.setAddress_fullname_en(location_en);
 			profileEnitity.setListPostInterested(postService.getTop5postProfile(id));
 			return ResponseEntity.ok().body(profileEnitity);
 		} catch (Exception e) {
@@ -316,6 +350,13 @@ public class ProfileContronller {
 			return ResponseEntity.badRequest().build();
 		}
 
+	}
+	
+	@PostMapping("/v1/user/profile/update/status")
+	public void updateStatus(HttpServletRequest request,@RequestParam("type")String type,@RequestParam("status") boolean status) {
+		String email = jwtTokenUtil.getEmailFromHeader(request);
+		User user = userService.findByEmail(email);
+		infoStatusService.update("infor_id", email, null);
 	}
 
 	@PostMapping("/v1/user/profile/post/timeline")
@@ -325,8 +366,9 @@ public class ProfileContronller {
 			String email = jwtTokenUtil.getEmailFromHeader(request);
 			User user = userService.findByEmail(email);
 			int user_id = user.getUser_id();
-			List<Object[]> postProfile = postService.getPostProfile(entityProfile.getToProfile(),user_id, entityProfile.getPage());
-			List<Object[]> postProfileShare = postService.getPostProfileShare(entityProfile.getToProfile(),user_id);
+			List<Object[]> postProfile = postService.getPostProfile(entityProfile.getToProfile(), user_id,
+					entityProfile.getPage());
+			List<Object[]> postProfileShare = postService.getPostProfileShare(entityProfile.getToProfile(), user_id);
 			List<PostEntity> postEntityProfile = new ArrayList<>();
 
 			for (Object[] ob : postProfile) {

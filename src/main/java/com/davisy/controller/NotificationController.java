@@ -414,11 +414,20 @@ public class NotificationController {
 
 	@MessageMapping("/load/notification/{to}")
 	public void loadNotidication(@DestinationVariable int to) {
+//		try {
+//			List<Notification> noti = notifyService.findAllByName("idUserReceive", to + "");
+//			System.err.println("size: " +noti.size());
+//			simpMessagingTemplate.convertAndSend("/topic/loaddata/notification/" + to, model(noti));
+//		} catch (Exception e) {
+//			System.out.println("error loadNotidication: " + e);
+//		}
+		
 		try {
 			List<Notification> noti = notifyService.findAllByName("idUserReceive", to + "");
-			simpMessagingTemplate.convertAndSend("/topic/loaddata/notification/" + to, model(noti));
+			List<NotificationModel> model = model(noti);
+			simpMessagingTemplate.convertAndSend("/topic/loaddata/notification/" + to,model);
 		} catch (Exception e) {
-			System.out.println("error loadNotidication: " + e);
+			System.out.println("error loadNotidication "+to+": " + e);
 		}
 	}
 
