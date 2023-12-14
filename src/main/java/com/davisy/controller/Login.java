@@ -315,7 +315,7 @@ public class Login {
 					Calendar calendar1 = map.get(key);
 					Calendar calendar2 = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
 					long differenceInMillis = Math.abs(calendar2.getTimeInMillis() - calendar1.getTimeInMillis());
-					long time = differenceInMillis / 3600000 * 6;
+					float time = (float) (differenceInMillis / 3600000 * 6.5);
 					if (time >= 156) {
 //					if (differenceInMillis >= 30000) {
 						simpMessagingTemplate.convertAndSend("/topic/notify/token-date/" + key, "logout");
@@ -325,7 +325,7 @@ public class Login {
 			}
 //			}
 		};
-		timer.schedule(task, 0, 1000);
+		timer.schedule(task, 0, 3600000);
 	}
 
 	public void stopClock() {
