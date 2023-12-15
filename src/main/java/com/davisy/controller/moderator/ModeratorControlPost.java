@@ -18,13 +18,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.davisy.controller.admin.AdminControl;
 import com.davisy.dto.AdminPostDetail;
 import com.davisy.dto.AdminUserProfile;
 import com.davisy.dto.CommentDetail;
 import com.davisy.dto.PostImagesDetail;
 import com.davisy.dto.PostReportedDTO;
-import com.davisy.dto.UserInfoStatusDTO;
 import com.davisy.dto.UserSendReport;
 import com.davisy.entity.Comment;
 import com.davisy.entity.Post;
@@ -33,6 +31,7 @@ import com.davisy.entity.PostReported;
 import com.davisy.entity.User;
 import com.davisy.entity.UserReported;
 import com.davisy.mongodb.documents.ModeratorPostReported;
+import com.davisy.mongodb.documents.UserInfoStatus;
 import com.davisy.service.CommentService;
 import com.davisy.service.FollowService;
 import com.davisy.service.InterestedService;
@@ -102,29 +101,32 @@ public class ModeratorControlPost {
 
 		AdminUserProfile userProfile = new AdminUserProfile();
 
-		UserInfoStatusDTO uStatus = infoStatusService.checkUserInfoStatus(user.getUser_id().toString());
+		UserInfoStatus infoStatus = infoStatusService.getStatusInfor(user.getUser_id().toString());
 
-		// check status
-		if (uStatus.isBirthdayStatus() == true) {
-			userProfile.setBirthday(formatDate(user.getBirthday()));
-		} else {
-			userProfile.setBirthday("Người dùng không muốn tiết lộ");
+		if(infoStatus != null) {
+			// check birthday status
+			if (infoStatus.getBirthday()) {
+				userProfile.setBirthday(formatDate(user.getBirthday()));
+
+			}else {
+				userProfile.setBirthday("Người dùng không muốn tiết lộ");
+			}
+			// check gender
+			if (infoStatus.getGender()) {
+				userProfile.setGender_name(user.getGender().getGender_name());
+			}else {
+				userProfile.setGender_name("Người dùng không muốn tiết lộ");
+			}
+			
+			// check location
+			if(infoStatus.getLocation()) {
+				userProfile.setCity_name(user.getProvinces().getFull_name());
+			}else {
+				userProfile.setCity_name("Người dùng không muốn tiết lộ");
+			}
+			
 		}
-
-		// check status
-		if (uStatus.isGenderStatus() == true) {
-			userProfile.setGender_name(user.getGender().getGender_name());
-		} else {
-			userProfile.setGender_name("Người dùng không muốn tiết lộ");
-		}
-
-		// check status
-		if (uStatus.isLocationStatus() == true) {
-			userProfile.setCity_name(user.getProvinces().getFull_name());
-		} else {
-			userProfile.setCity_name("Người dùng không muốn tiết lộ");
-		}
-
+		
 		userProfile.setFullname(user.getFullname());
 		userProfile.setEmail(user.getEmail());
 		userProfile.setIntro(user.getIntro());

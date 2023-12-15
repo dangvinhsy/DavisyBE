@@ -1,22 +1,19 @@
 package com.davisy.controller.admin;
 
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.davisy.dto.AdminUserTOP4;
-import com.davisy.dto.UserInfoStatusDTO;
-import com.davisy.entity.Post;
 import com.davisy.entity.User;
+import com.davisy.mongodb.documents.UserInfoStatus;
 import com.davisy.service.CommentService;
 import com.davisy.service.FollowService;
 import com.davisy.service.InterestedService;
@@ -177,10 +174,10 @@ public class AdminUserStatistics {
 				
 				//check status
 				
-				UserInfoStatusDTO uStatus = infoStatusService.checkUserInfoStatus(user.getUser_id().toString());
+				UserInfoStatus infoStatus = infoStatusService.getStatusInfor(user.getUser_id().toString());
 				
 				// check status
-				if (uStatus.isBirthdayStatus() == true) {
+				if (infoStatus.getBirthday()) {
 					int birthdayYear = user.getBirthday().get(Calendar.YEAR);
 					Calendar calendar = GregorianCalendar.getInstance();
 					int thisYear = calendar.get(Calendar.YEAR);
@@ -192,7 +189,7 @@ public class AdminUserStatistics {
 				}
 				
 				// check status
-				if (uStatus.isLocationStatus() == true) {
+				if (infoStatus.getLocation()) {
 					adminUserTOP4.setLocation(user.getLocation());
 				} else {
 					adminUserTOP4.setLocation("");

@@ -6,25 +6,18 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import jakarta.annotation.security.RolesAllowed;
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.davisy.config.JwtTokenUtil;
-import com.davisy.dto.Admin;
 import com.davisy.dto.AdminPostDetail;
 import com.davisy.dto.AdminUserProfile;
 import com.davisy.dto.CommentDetail;
 import com.davisy.dto.PostImagesDetail;
-import com.davisy.dto.UserInfoStatusDTO;
 import com.davisy.dto.UserSendReport;
 import com.davisy.entity.Comment;
 import com.davisy.entity.Post;
@@ -32,6 +25,7 @@ import com.davisy.entity.PostImages;
 import com.davisy.entity.PostReported;
 import com.davisy.entity.User;
 import com.davisy.entity.UserReported;
+import com.davisy.mongodb.documents.UserInfoStatus;
 import com.davisy.service.CommentService;
 import com.davisy.service.EmailService;
 import com.davisy.service.FollowService;
@@ -43,6 +37,8 @@ import com.davisy.service.ShareService;
 import com.davisy.service.UserInfoStatusService;
 import com.davisy.service.UserReportedService;
 import com.davisy.service.UserService;
+
+import jakarta.annotation.security.RolesAllowed;
 
 @RestController
 @CrossOrigin("*")
@@ -141,27 +137,30 @@ public class AdminControl {
 		userProfile.setEmail(user.getEmail());
 		userProfile.setIntro(user.getIntro());
 
-		UserInfoStatusDTO uStatus = infoStatusService.checkUserInfoStatus(user.getUser_id().toString());
+		UserInfoStatus infoStatus = infoStatusService.getStatusInfor(user.getUser_id().toString());
 		
-		// check status
-		if (uStatus.isBirthdayStatus() == true) {
-			userProfile.setBirthday(formatDate(user.getBirthday()));
-		} else {
-			userProfile.setBirthday("Người dùng không muốn tiết lộ");
-		}
+		if(infoStatus != null) {
+			// check birthday status
+			if (infoStatus.getBirthday()) {
+				userProfile.setBirthday(formatDate(user.getBirthday()));
 
-		// check status
-		if (uStatus.isGenderStatus() == true) {
-			userProfile.setGender_name(user.getGender().getGender_name());
-		} else {
-			userProfile.setGender_name("Người dùng không muốn tiết lộ");
-		}
-		
-		// check status
-		if (uStatus.isLocationStatus() == true) {
-			userProfile.setCity_name(user.getProvinces().getFull_name());
-		} else {
-			userProfile.setCity_name("Người dùng không muốn tiết lộ");
+			}else {
+				userProfile.setBirthday("Người dùng không muốn tiết lộ");
+			}
+			// check gender
+			if (infoStatus.getGender()) {
+				userProfile.setGender_name(user.getGender().getGender_name());
+			}else {
+				userProfile.setGender_name("Người dùng không muốn tiết lộ");
+			}
+			
+			// check location
+			if(infoStatus.getLocation()) {
+				userProfile.setCity_name(user.getProvinces().getFull_name());
+			}else {
+				userProfile.setCity_name("Người dùng không muốn tiết lộ");
+			}
+			
 		}
 
 		userProfile.setDay_join(String.valueOf(user.getDay_create().get(Calendar.DAY_OF_MONTH)));

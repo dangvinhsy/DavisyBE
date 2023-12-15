@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserInfoStatus {
-	private String user_id;
-	private String infor_id;
-	private boolean status = true;
+	public String user_id;
+	public Boolean gender = true;
+	public Boolean location = true;
+	public Boolean birthday = true;
 }

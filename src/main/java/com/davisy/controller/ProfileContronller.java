@@ -23,17 +23,16 @@ import com.davisy.auth.AuthenticationRequest;
 import com.davisy.auth.AuthenticationResponse;
 import com.davisy.config.JwtTokenUtil;
 import com.davisy.constant.Cache;
-import com.davisy.dto.UserInfoStatusDTO;
 import com.davisy.dto.UserProfile;
 import com.davisy.entity.DataFollows;
 import com.davisy.entity.Districts;
 import com.davisy.entity.Gender;
-import com.davisy.entity.Post;
 import com.davisy.entity.PostEntity;
 import com.davisy.entity.ProfileEnitity;
 import com.davisy.entity.Provinces;
 import com.davisy.entity.User;
 import com.davisy.entity.Wards;
+import com.davisy.mongodb.documents.UserInfoStatus;
 import com.davisy.service.AuthenticationService;
 import com.davisy.service.CacheService;
 import com.davisy.service.ChatsService;
@@ -277,41 +276,27 @@ public class ProfileContronller {
 	public ResponseEntity<ProfileEnitity> loadTimeLine(HttpServletRequest request, @RequestBody int toProfileUser) {
 		try {
 			String email = jwtTokenUtil.getEmailFromHeader(request);
-			User user1 = userService.findByEmail(email);
+			User currentUser = userService.findByEmail(email);
 			User user = new User();
 			String birthday = "";
 			String gender = "";
 			String location_vi = "";
 			String location_en = "";
+			UserInfoStatus infoStatus = infoStatusService.getStatusInfor(toProfileUser+"");
+			System.out.println("Ìnor is: "+infoStatus != null);
 			boolean check = false;
-			if (user1.getUser_id() == toProfileUser || toProfileUser == 0) {
-				user = user1;
+			if (currentUser.getUser_id() == toProfileUser || toProfileUser == 0) {
+				user = currentUser;
 			} else {
 				user = userService.findById(toProfileUser);
 				check = true;
 			}
-			UserInfoStatusDTO uStatus = infoStatusService.checkUserInfoStatus(user.getUser_id().toString());
 			int id = user.getUser_id();
 			ProfileEnitity profileEnitity = new ProfileEnitity();
 			profileEnitity.setIntro(user.getIntro());
 			profileEnitity.setImages(postImagesService.findAllImagesUser(id));
 			profileEnitity.setDateJoin(user.getDay_create());
-
-			// check status
-			if (uStatus.isBirthdayStatus() == true && user.getBirthday() != null) {
-				SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-				birthday = sdf.format(user.getBirthday().getTime());
-
-			}
-			// check status
-			if (uStatus.isGenderStatus() == true) {
-				gender = user.getGender().getGender_name();
-			}
-
-			// check status
-
-			profileEnitity.setBirthday(birthday);
-			profileEnitity.setGender(gender);
+			
 			Provinces provinces = user.getProvinces();
 			Districts districts = user.getDistricts();
 			Wards wards = user.getWards();
@@ -337,10 +322,31 @@ public class ProfileContronller {
 			}
 
 			
-			if (uStatus.isLocationStatus() == true) {
-				location_vi = district_fullname + " " + provinces_fullname;
-				location_en = district_fullname_en + " " + provinces_fullname_en;
+			if(infoStatus != null) {
+				// check birthday status
+				System.out.println("infoStatus.isBirthday()"+infoStatus.getBirthday());
+				System.out.println("infoStatus.isGender()"+infoStatus.getGender());
+				System.out.println("infoStatus.isLocation())"+infoStatus.getLocation());
+				if (infoStatus.getBirthday()) {
+					SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+					birthday = sdf.format(user.getBirthday().getTime());
+
+				}
+				// check gender
+				if (infoStatus.getGender()) {
+					gender = user.getGender().getGender_name();
+				}
+				
+				// check location
+				if(infoStatus.getLocation()) {
+					location_vi = district_fullname + " " + provinces_fullname;
+					location_en = district_fullname_en + " " + provinces_fullname_en;
+				}
+				
 			}
+
+			profileEnitity.setBirthday(birthday);
+			profileEnitity.setGender(gender);
 			profileEnitity.setAddress_fullname(location_vi);
 			profileEnitity.setAddress_fullname_en(location_en);
 			profileEnitity.setListPostInterested(postService.getTop5postProfile(id));
@@ -353,10 +359,16 @@ public class ProfileContronller {
 	}
 	
 	@PostMapping("/v1/user/profile/update/status")
-	public void updateStatus(HttpServletRequest request,@RequestParam("type")String type,@RequestParam("status") boolean status) {
-		String email = jwtTokenUtil.getEmailFromHeader(request);
-		User user = userService.findByEmail(email);
-		infoStatusService.update("infor_id", email, null);
+	public boolean updateStatus(HttpServletRequest request, @RequestBody UserInfoStatus infoStatus) {
+		try {
+			String email = jwtTokenUtil.getEmailFromHeader(request);
+			User user = userService.findByEmail(email);
+			infoStatus.setUser_id(user.getUser_id()+"");
+			infoStatusService.updateStatusProfile(infoStatus);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	@PostMapping("/v1/user/profile/post/timeline")

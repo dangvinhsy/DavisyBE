@@ -1,10 +1,14 @@
 package com.davisy.controller.chat;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -79,12 +83,15 @@ public class UserChatController {
 		try {
 			String email = jwtTokenUtil.getEmailFromHeader(request);
 			User user = userService.findByEmail(email);
+			Calendar date = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
+			UserLoginStorage.getInstance().setUser(user.getUser_id(), date);
 			user.setOnline_last_date(null);
 			userService.update(user);
 			async(user, true);
 			UserTemp temp = new UserTemp();
 			temp.setUser_id(user.getUser_id());
 			temp.setAvatar(user.getAvatar());
+			time();
 			return ResponseEntity.ok().body(temp);
 		} catch (Exception e) {
 			System.out.println("Error register in userchatcontroller: " + e);
@@ -103,7 +110,7 @@ public class UserChatController {
 			async(user, false);
 			UserChatStorage.getInstance().remove(id);
 			UserFollowerStorage.getInstance().remove(id);
-//			UserLoginStorage.getInstance().remove(id);
+			UserLoginStorage.getInstance().remove(id);
 //			System.err.println("đăng xuất");
 			return ResponseEntity.ok().build();
 		} catch (Exception e) {
@@ -264,6 +271,43 @@ public class UserChatController {
 			simpMessagingTemplate.convertAndSend("/topic/public", UserChatStorage.getInstance().getUsers());
 		} catch (Exception e) {
 			// TODO: handle exception
+		}
+	}
+	
+	Timer timer = new Timer();
+
+	@Async
+	public void time() {
+		timer = new Timer();
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				HashMap<Integer, Calendar> map = UserLoginStorage.getInstance().getUsers();
+				if (map.isEmpty()) {
+					stopClock();
+				}
+				Iterator<Integer> id = map.keySet().iterator();
+				while (id.hasNext()) {
+					int key = id.next();
+					Calendar calendar1 = map.get(key);
+					Calendar calendar2 = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
+					long differenceInMillis = Math.abs(calendar2.getTimeInMillis() - calendar1.getTimeInMillis());
+					float time = (float) (differenceInMillis / 3600000 * 6.5);
+					if (time >= 156) {
+//					if (differenceInMillis >= 30000) {
+						simpMessagingTemplate.convertAndSend("/topic/notify/token-date/" + key, "logout");
+						UserLoginStorage.getInstance().remove(key);
+					}
+				}
+			}
+//			}
+		};
+		timer.schedule(task, 0, 3600000);
+	}
+
+	public void stopClock() {
+		if (timer != null) {
+			timer.cancel();
 		}
 	}
 
