@@ -292,7 +292,7 @@ public class AdminControl {
 	public static String timeCaculate(Calendar datePost) {
 		String timeCaculate = "";
 
-		Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
+		Calendar calendar = GregorianCalendar.getInstance();
 
 		int day = calendar.get(Calendar.DAY_OF_MONTH);
 		int month = calendar.get(Calendar.MONTH) + 1;
@@ -328,24 +328,7 @@ public class AdminControl {
 		} else {
 			int time = dayCaculate - totalDayInMonth;
 			if (time == 0) {
-//				timeCaculate = String.valueOf("Vài giờ trước");
-				long currentTimeMillis = calendar.getTimeInMillis();
-				long postTimeMillis = datePost.getTimeInMillis();
-
-				long timeDifferenceMillis = currentTimeMillis - postTimeMillis;
-
-				long seconds = timeDifferenceMillis / 1000;
-				long minutes = seconds / 60;
-				long hours = minutes / 60;
-				long days = hours / 24;
-
-				if (hours > 0 ) {
-					timeCaculate = hours + " giờ trước";
-				} else if (minutes > 0 ) {
-					timeCaculate = minutes + " phút trước";
-				} else {
-					timeCaculate = seconds + " giây trước";
-				}
+				timeCaculate = String.valueOf("Vài giờ trước");
 			} else {
 				timeCaculate = String.valueOf(time + " ngày trước");
 			}
