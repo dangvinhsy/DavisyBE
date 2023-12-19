@@ -78,7 +78,7 @@ public class PostEntity {
 		if (date.substring(0, 1).equals("-")) {
 			return date.substring(1, date.length());
 		}
-		if (date.equalsIgnoreCase("Vài giờ trước")) {
+		if (date.equalsIgnoreCase("Vài giờ trước") || data.contains("giây") {
 			return PostController.getTime(date_post);
 		}
 		return date;
