@@ -420,18 +420,7 @@ public class PostController {
 			profile.setPost_id(Integer.valueOf(((Object[]) ob[0])[0].toString()));
 			profile.setUser_id(Integer.valueOf(((Object[]) ob[0])[1].toString()));
 			profile.setContent(((Object[]) ob[0])[3] + "");
-
-			// Xử lý ngày tháng
-			Date date = null;
-			if (((Object[]) ob[0])[4] != null && !((Object[]) ob[0])[4].toString().isEmpty()) {
-				date = dateFormat.parse(((Object[]) ob[0])[4].toString());
-			}
-			if (date != null) {
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(date);
-				profile.setDate_post(calendar);
-			}
-
+			profile.setDate_post(((Object[]) ob[0])[4] + "");
 			profile.setHash_tag(((Object[]) ob[0])[5] + "");
 			profile.setSend_status(Boolean.valueOf(((Object[]) ob[0])[6] + ""));
 			profile.setPost_status(Boolean.valueOf(((Object[]) ob[0])[7] + ""));
@@ -489,17 +478,9 @@ public class PostController {
 			}
 			
 			profile.setContent(ob[3] + "");
+			profile.setDate_post(ob[4] + "");
 
-			// Xử lý ngày tháng
-			Date date = null;
-			if (ob[4] != null && !ob[4].toString().isEmpty()) {
-				date = dateFormat.parse(ob[4].toString());
-			}
-			if (date != null) {
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(date);
-				profile.setDate_post(calendar);
-			}
+		
 
 			profile.setHash_tag(ob[5] + "");
 			profile.setSend_status(Boolean.valueOf(ob[6] + ""));

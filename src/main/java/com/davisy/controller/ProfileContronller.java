@@ -411,15 +411,7 @@ public class ProfileContronller {
 			profile.setPost_id(Integer.valueOf(ob[0].toString()));
 			profile.setUser_id(Integer.valueOf(ob[1].toString()));
 			profile.setContent(ob[3] + "");
-			Date date = null;
-			if (ob[4] != null && !ob[4].toString().isEmpty()) {
-				date = dateFormat.parse(ob[4].toString());
-			}
-			if (date != null) {
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTime(date);
-				profile.setDate_post(calendar);
-			}
+			profile.setDate_post(ob[4] + "");
 
 			profile.setHash_tag(ob[5] + "");
 			profile.setSend_status(Boolean.valueOf(ob[6] + ""));

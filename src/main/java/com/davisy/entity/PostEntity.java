@@ -25,7 +25,7 @@ public class PostEntity {
 //	int parent_post_id;
 	String content;
 	@JsonIgnore
-	Calendar date_post;
+	String date_post;
 //	@JsonIgnore
 	String hash_tag;
 	boolean send_status;
@@ -74,13 +74,7 @@ public class PostEntity {
 	}
 
 	public String getDate() {
-		String date = AdminControl.timeCaculate(date_post);
-		if (date.substring(0, 1).equals("-")) {
-			return date.substring(1, date.length());
-		}
-		if (date.equalsIgnoreCase("Vài giờ trước")) {
-			return PostController.getTime(date_post);
-		}
+		String date = date_post;
 		return date;
 	}
 }
