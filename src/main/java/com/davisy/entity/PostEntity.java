@@ -75,12 +75,13 @@ public class PostEntity {
 
 	public String getDate() {
 		String date = AdminControl.timeCaculate(date_post);
-		if (date.equalsIgnoreCase("Vài giờ trước")) {
-			return PostController.getTime(date_post);
-		}
 		if (date.substring(0, 1).equals("-")) {
 			return date.substring(1, date.length());
 		}
+		if (date.equalsIgnoreCase("Vài giờ trước")) {
+			return PostController.getTime(date_post);
+		}
+		
 		return date;
 	}
 }
