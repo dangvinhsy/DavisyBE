@@ -111,16 +111,17 @@ public class AdminControl {
 	}
 
 	// 22-9-2023 -Vô hiệu hóa người dùng
-	@GetMapping("/v1/admin/actionOnUser/{email}")
-	public void adminGetActionUser(@PathVariable String email) {
+	//18/12
+	@GetMapping("/v1/admin/actionOnUser/{id}")
+	public void adminGetActionUser(@PathVariable int id) {
 		try {
-			User user = userService.findByEmail(email);
+			User user = userService.findById(id);
 			userService.disable(user);
 			if (user.isBan() == true) {
-				emailService.sendHtmlEmailToUserIsBan(email);
+				emailService.sendHtmlEmailToUserIsBan(user.getEmail());
 				simpMessagingTemplate.convertAndSend("/topic/notify/user/ban/"+user.getUser_id(),"ban");
 			} else {
-				emailService.sendHtmlEmailToUserIsUnBan(email);
+				emailService.sendHtmlEmailToUserIsUnBan(user.getEmail());
 			}
 			
 		} catch (Exception e) {
@@ -133,6 +134,8 @@ public class AdminControl {
 
 		AdminUserProfile userProfile = new AdminUserProfile();
 
+		userProfile.setId(user.getUser_id());
+		
 		userProfile.setFullname(user.getFullname());
 		userProfile.setEmail(user.getEmail());
 		userProfile.setIntro(user.getIntro());

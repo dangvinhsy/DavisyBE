@@ -120,6 +120,13 @@ public class UserChatController {
 
 	}
 
+	@GetMapping("/v1/user/reload/friend")
+	public void reloadFriend(HttpServletRequest request) {
+		String email = jwtTokenUtil.getEmailFromHeader(request);
+		User user =userService.findByEmail(email);
+		async(user, true);
+	}
+	
 	@Async
 	public void async(User user, boolean checkRequest) {
 		int from = user.getUser_id();

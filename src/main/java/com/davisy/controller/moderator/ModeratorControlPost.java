@@ -85,10 +85,10 @@ public class ModeratorControlPost {
 	int month = now.get(Calendar.MONTH) + 1;
 	int year = now.get(Calendar.YEAR);
 
-	@GetMapping("/v1/moderator/detailUser/{email}")
-	public ResponseEntity<AdminUserProfile> detailUser(@PathVariable String email) {
+	@GetMapping("/v1/moderator/detailUser/{id}")
+	public ResponseEntity<AdminUserProfile> detailUser(@PathVariable String id) {
 		try {
-			User user = userService.findByEmail(email);
+			User user = userService.findById(Integer.valueOf(id));
 
 			return ResponseEntity.status(200).body(setUserDetail(user));
 		} catch (Exception e) {
@@ -126,6 +126,8 @@ public class ModeratorControlPost {
 			}
 			
 		}
+		
+		userProfile.setId(user.getUser_id());
 		
 		userProfile.setFullname(user.getFullname());
 		userProfile.setEmail(user.getEmail());
@@ -433,7 +435,7 @@ public class ModeratorControlPost {
 			for (ModeratorPostReported postReported : postReporteds) {
 				Calendar calendar = new GregorianCalendar();
 				calendar.setTime(postReported.getDate_report());
-				if (calendar.get(Calendar.DAY_OF_MONTH) == time && calendar.get(Calendar.MONTH) == month
+				if (calendar.get(Calendar.DAY_OF_MONTH) == time && calendar.get(Calendar.MONTH) + 1 == month
 						&& calendar.get(Calendar.YEAR) == year) {
 					totalPost++;
 				}
@@ -445,7 +447,7 @@ public class ModeratorControlPost {
 			for (ModeratorPostReported postReported : postReporteds) {
 				Calendar calendar = new GregorianCalendar();
 				calendar.setTime(postReported.getDate_report());
-				if (calendar.get(Calendar.MONTH) == time && calendar.get(Calendar.YEAR) == year) {
+				if ((calendar.get(Calendar.MONTH)+1) == time && calendar.get(Calendar.YEAR) == year) {
 					totalPost++;
 				}
 			}
@@ -467,6 +469,7 @@ public class ModeratorControlPost {
 
 		return totalPost;
 	}
+
 
 	// lastest update 1-11
 	@GetMapping("/v1/moderator/getTotalPostReportedByYear")
@@ -651,18 +654,17 @@ public class ModeratorControlPost {
 		}
 	}
 
-	@DeleteMapping("/v1/moderator/deletePostReported")
-	public String delete() {
+	@DeleteMapping("/v1/moderator/deletePostReported/{postId}/{userSendId}")
+	public ResponseEntity<String> delete(@PathVariable String postId, @PathVariable String userSendId) {
 		try {
-			String post_reported_id = "49";
-			String user_send_report_id = "7";
+			  
 			ModeratorPostReported postReported = moderatorPostReportedService.findByTwoColumn("post_reported_id",
-					post_reported_id, "user_send_report_id", user_send_report_id);
+					postId, "user_send_report_id", userSendId);
 			moderatorPostReportedService.delete(postReported.getId());
-			return "Successfully";
+			return ResponseEntity.status(200).body(null);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "ERROR" + e;
+			return ResponseEntity.status(403).body(null);
 		}
 	}
 

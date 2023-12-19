@@ -163,7 +163,7 @@ public class AdminPostStatistics {
 	// 22-9-2023 -Tổng số bài đăng theo từng tháng
 	// update lastest 4-10
 	@GetMapping("/v1/admin/getTotalPostEveryMonth")
-	public ResponseEntity<int[]> getTotalUserEveryMonth() {
+	public ResponseEntity<int[]> getTotalPostEveryMonth() {
 		try {
 			List<Object[]> list = postService.getTotalPostEveryMonth();
 			int[] listMonth = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
