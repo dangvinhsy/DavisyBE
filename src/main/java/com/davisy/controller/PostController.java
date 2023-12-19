@@ -573,7 +573,7 @@ public class PostController {
 
 	public static String getTime(Calendar datePost) {
 		String timeCaculate = "";
-		Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
+		Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));;
 
 		long currentTimeMillis = calendar.getTimeInMillis();
 		long postTimeMillis = datePost.getTimeInMillis();
