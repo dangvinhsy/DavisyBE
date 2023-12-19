@@ -81,7 +81,6 @@ public class PostEntity {
 		if (date.equalsIgnoreCase("Vài giờ trước")) {
 			return PostController.getTime(date_post);
 		}
-		
 		return date;
 	}
 }
