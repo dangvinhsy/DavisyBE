@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -290,9 +291,9 @@ public class AdminControl {
 	// update lastest 7-10
 	public static String timeCaculate(Calendar datePost) {
 		String timeCaculate = "";
-
-		Calendar calendar = GregorianCalendar.getInstance();
-
+		
+		Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
+		
 		int day = calendar.get(Calendar.DAY_OF_MONTH);
 		int month = calendar.get(Calendar.MONTH) + 1;
 		int year = calendar.get(Calendar.YEAR);
