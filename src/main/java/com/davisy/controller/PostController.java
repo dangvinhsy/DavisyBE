@@ -427,7 +427,7 @@ public class PostController {
 				date = dateFormat.parse(((Object[]) ob[0])[4].toString());
 			}
 			if (date != null) {
-				Calendar calendar = Calendar.getInstance();
+				Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
 				calendar.setTime(date);
 				profile.setDate_post(calendar);
 			}
@@ -496,7 +496,7 @@ public class PostController {
 				date = dateFormat.parse(ob[4].toString());
 			}
 			if (date != null) {
-				Calendar calendar = Calendar.getInstance();
+				Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
 				calendar.setTime(date);
 				profile.setDate_post(calendar);
 			}
@@ -573,7 +573,7 @@ public class PostController {
 
 	public static String getTime(Calendar datePost) {
 		String timeCaculate = "";
-		Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));;
+		Calendar calendar = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT+7"));
 
 		long currentTimeMillis = calendar.getTimeInMillis();
 		long postTimeMillis = datePost.getTimeInMillis();
